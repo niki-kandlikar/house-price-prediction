@@ -14,9 +14,10 @@ that:
 1. Cleans missing values and removes data-entry outliers
 2. Engineers derived features that improve linear fit (house age,
    lot-to-living ratio, total rooms)
-3. Scales features so coefficients are comparable across variables of
-   very different magnitude (square footage vs. distance in km)
-4. Trains a linear regression model on a held-out train/test split
+3. Splits into train/test (80/20)
+4. Scales features (scaler fit on the training split only) so
+   coefficients are comparable across variables of very different
+   magnitude, and trains a linear regression model
 5. Evaluates performance with **MSE**, **RMSE**, and **R²**
 6. Visualizes predictions, residuals, and feature importance for
    interpretability
@@ -46,7 +47,7 @@ house-price-prediction/
 ## How to Run
 
 ```bash
-git clone https://github.com/<your-username>/house-price-prediction.git
+git clone https://github.com/niki-kandlikar/house-price-prediction.git
 cd house-price-prediction
 pip install -r requirements.txt
 
@@ -68,11 +69,12 @@ training.
 **Feature engineering** — three derived features are added on top of
 the raw fields:
 - `HouseAge` (from `YearBuilt`)
-- `PricePerSqft_proxy` — lot-to-living-space ratio
+- `LotToLivingRatio` — lot size divided by living square footage
 - `TotalRooms` — bedrooms + bathrooms combined
 
 **Feature scaling** — all features are standardized with
-`StandardScaler` before fitting, so regression coefficients are
+`StandardScaler`, fit on the training split only so test-set statistics
+don't leak into training, so regression coefficients are
 directly comparable in magnitude regardless of each feature's original
 units.
 
@@ -84,10 +86,10 @@ units.
 | RMSE | ~$42,584 |
 | MSE | ~1.81B |
 
-An R² of 0.81 means the model explains about 81% of the variance in
-house prices from the available features — solid for a linear model,
-with the remaining variance likely driven by factors not captured here
-(renovation quality, neighborhood-specific effects, market timing).
+One caveat: the data is synthetic (`generate_data.py`), so this R²
+mostly reflects how much noise the generator adds, not how well a
+linear model would do on real listings. The next step is rerunning this
+on a real dataset (e.g. Ames Housing).
 
 ## Results
 
@@ -112,15 +114,6 @@ under-predicting:
 
 ![Residuals](results/residuals.png)
 
-## Business Application
-
-This kind of model supports:
-- **Automated valuation** — a first-pass price estimate for listings
-- **Feature-driven pricing guidance** — quantifying how much an added
-  bathroom or garage space is worth, holding everything else constant
-- **Anomaly flagging** — listings priced far from model predictions
-  as candidates for manual review
-
 ## Future Improvements
 
 - Compare against regularized regression (Ridge/Lasso) to handle
@@ -131,3 +124,4 @@ This kind of model supports:
   encoding
 - Cross-validation instead of a single train/test split for more
   robust performance estimates
+- Run it on real data (Ames Housing) instead of the synthetic set

@@ -38,19 +38,21 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     """Create derived features that improve linear model fit."""
     df = df.copy()
     df["HouseAge"] = 2026 - df["YearBuilt"]
-    df["PricePerSqft_proxy"] = df["LotSize"] / df["SquareFootage"]  # lot-to-living ratio
+    df["LotToLivingRatio"] = df["LotSize"] / df["SquareFootage"]
     df["TotalRooms"] = df["Bedrooms"] + df["Bathrooms"]
     return df
 
-ENGINEERED_FEATURES = RAW_FEATURES + ["HouseAge", "PricePerSqft_proxy", "TotalRooms"]
+ENGINEERED_FEATURES = RAW_FEATURES + ["HouseAge", "LotToLivingRatio", "TotalRooms"]
 ENGINEERED_FEATURES.remove("YearBuilt")  # superseded by HouseAge
 
 
-def scale_features(df: pd.DataFrame, features=ENGINEERED_FEATURES):
+def scale_features(X_train: pd.DataFrame, X_test: pd.DataFrame):
+    """Fit the scaler on the training split only, then apply it to both,
+    so test-set statistics don't leak into training."""
     scaler = StandardScaler()
-    scaled = scaler.fit_transform(df[features])
-    scaled_df = pd.DataFrame(scaled, columns=features, index=df.index)
-    return scaled_df, scaler
+    train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+    test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+    return train, test, scaler
 
 
 if __name__ == "__main__":
@@ -58,6 +60,5 @@ if __name__ == "__main__":
     df = handle_missing_values(raw)
     df = remove_outliers(df)
     df = engineer_features(df)
-    scaled_df, scaler = scale_features(df)
     print(f"Raw rows: {len(raw)} -> Clean rows: {len(df)}")
-    print(scaled_df.describe())
+    print(df[ENGINEERED_FEATURES].describe())

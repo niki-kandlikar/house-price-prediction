@@ -2,7 +2,7 @@
 modeling.py
 ------------
 Train/test split, linear regression fitting, and evaluation using
-MSE and R^2, as called out on the resume.
+MSE and R^2.
 """
 
 import numpy as np

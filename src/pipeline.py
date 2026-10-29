@@ -1,7 +1,7 @@
 """
 pipeline.py
 -----------
-End-to-end run: load -> clean -> engineer features -> scale -> split ->
+End-to-end run: load -> clean -> engineer features -> split -> scale ->
 train -> evaluate (MSE / R^2) -> visualize -> save results.
 
 Run with:  python pipeline.py   (from inside src/)
@@ -74,12 +74,11 @@ def main():
     # 2. Feature engineering
     df = engineer_features(df)
 
-    # 3. Feature scaling
-    scaled_X, scaler = scale_features(df)
-    y = df[TARGET]
+    # 3. Train/test split
+    X_train, X_test, y_train, y_test = split_data(df[ENGINEERED_FEATURES], df[TARGET])
 
-    # 4. Train/test split
-    X_train, X_test, y_train, y_test = split_data(scaled_X, y)
+    # 4. Feature scaling (fit on train only)
+    X_train, X_test, scaler = scale_features(X_train, X_test)
 
     # 5. Train
     model = train_model(X_train, y_train)
